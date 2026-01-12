@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dashboard_screen.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -140,24 +141,78 @@ class OnboardingScreen extends StatelessWidget {
 // SIGN IN MODAL WITH OVERLAPPING CLOSE BUTTON
 // ---------------------------------------------------------
 
-class SignInDialog extends StatelessWidget {
+class SignInDialog extends StatefulWidget {
   const SignInDialog({super.key});
+
+  @override
+  State<SignInDialog> createState() => _SignInDialogState();
+}
+
+class _SignInDialogState extends State<SignInDialog> {
+  // 1. Controllers to capture text input
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  
+  // 2. Loading state to show a spinner while logging in
+  bool _isLoading = false;
+
+  // 3. The Firebase Login Function
+  Future<void> _signIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      // Success: Close dialog and navigate
+      Navigator.of(context).pop(); 
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
+
+    } on FirebaseAuthException catch (e) {
+      // Error: Show a snackbar with the error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? "An error occurred"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: SingleChildScrollView(
-        // Add extra padding at the bottom so the hanging button isn't cut off by the screen edge
-        padding: const EdgeInsets.only(bottom: 40), 
+        padding: const EdgeInsets.only(bottom: 40),
         child: Stack(
-          clipBehavior: Clip.none, // Allows the button to hang outside the card
+          clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
             // 1. THE MAIN CARD
             Container(
-              // No vertical margin here, handled by SingleChildScrollView padding
-              margin: const EdgeInsets.symmetric(horizontal: 24), 
-              padding: const EdgeInsets.only(top: 32, left: 24, right: 24, bottom: 48), // Extra bottom padding for content
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.only(top: 32, left: 24, right: 24, bottom: 48),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.95),
                 borderRadius: BorderRadius.circular(40),
@@ -186,24 +241,25 @@ class SignInDialog extends StatelessWidget {
                     "Access to your working progress and continue to work effectively by tracking this app.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                      decoration: TextDecoration.none,
-                      fontWeight: FontWeight.normal
-                    ),
+                        color: Colors.grey,
+                        fontSize: 14,
+                        decoration: TextDecoration.none,
+                        fontWeight: FontWeight.normal),
                   ),
                   const SizedBox(height: 30),
 
-                  // EMAIL INPUT
-                  const CustomTextField(
+                  // EMAIL INPUT (Pass controller here)
+                  CustomTextField(
+                    controller: _emailController,
                     hintText: "Email",
                     icon: Icons.email_outlined,
                     iconColor: Colors.pinkAccent,
                   ),
                   const SizedBox(height: 16),
 
-                  // PASSWORD INPUT
-                  const CustomTextField(
+                  // PASSWORD INPUT (Pass controller here)
+                  CustomTextField(
+                    controller: _passwordController,
                     hintText: "Password",
                     icon: Icons.lock_outline,
                     iconColor: Colors.pinkAccent,
@@ -216,14 +272,7 @@ class SignInDialog extends StatelessWidget {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () {
-                         // TODO: Navigate to Dashboard
-                         Navigator.of(context).pop();
-                         //navigate to the dashboard screen
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (context) => const DashboardScreen()),
-                          );
-                      },
+                      onPressed: _isLoading ? null : _signIn, // Disable button if loading
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFF77D8E),
                         foregroundColor: Colors.white,
@@ -233,10 +282,12 @@ class SignInDialog extends StatelessWidget {
                         elevation: 5,
                         shadowColor: const Color(0xFFF77D8E).withOpacity(0.5),
                       ),
-                      child: const Text(
-                        "Sign in",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+                      child: _isLoading 
+                        ? const CircularProgressIndicator(color: Colors.white) // Show spinner
+                        : const Text(
+                            "Sign in",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -247,7 +298,11 @@ class SignInDialog extends StatelessWidget {
                       Expanded(child: Divider()),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text("OR", style: TextStyle(color: Colors.grey, fontSize: 12, decoration: TextDecoration.none)),
+                        child: Text("OR",
+                            style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                                decoration: TextDecoration.none)),
                       ),
                       Expanded(child: Divider()),
                     ],
@@ -266,7 +321,8 @@ class SignInDialog extends StatelessWidget {
                           color: const Color(0xFFFEEBF1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.g_mobiledata, size: 35, color: Color(0xFFF77D8E)),
+                        child: const Icon(Icons.g_mobiledata,
+                            size: 35, color: Color(0xFFF77D8E)),
                       ),
                     ],
                   ),
@@ -275,9 +331,8 @@ class SignInDialog extends StatelessWidget {
             ),
 
             // 2. THE CLOSE (X) BUTTON
-            // Positioned with negative bottom value to hang halfway off
             Positioned(
-              bottom: -23, // Negative value pulls it down. -28 is half of typical button size + shadow
+              bottom: -23,
               child: GestureDetector(
                 onTap: () {
                   Navigator.of(context).pop();
@@ -322,17 +377,23 @@ class SignInDialog extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------
+// CUSTOM TEXT FIELD (UPDATED TO ACCEPT CONTROLLER)
+// ---------------------------------------------------------
+
 class CustomTextField extends StatelessWidget {
   final String hintText;
   final IconData icon;
   final Color iconColor;
   final bool isPassword;
+  final TextEditingController controller; // Added this
 
   const CustomTextField({
     super.key,
     required this.hintText,
     required this.icon,
     required this.iconColor,
+    required this.controller, // Added this
     this.isPassword = false,
   });
 
@@ -341,6 +402,7 @@ class CustomTextField extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: TextField(
+        controller: controller, // Connect controller
         obscureText: isPassword,
         decoration: InputDecoration(
           hintText: hintText,
@@ -371,3 +433,4 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
+
