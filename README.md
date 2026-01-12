@@ -1,16 +1,9 @@
-# ios_mobile_development
+# Project Managment App Using Flutter
 
-A new Flutter project.
+This app was create using flutter for internship and TSNN project
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This project using a mordern design and a good way to start get use to app development.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The resource in this app: (update later)
