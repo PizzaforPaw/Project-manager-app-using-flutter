@@ -8,7 +8,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9FB), // Light grey background
+      backgroundColor: const Color(0xFFF9F9FB),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -16,7 +16,7 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. TOP BAR (Hello User + Avatar)
+                // 1. TOP BAR
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -40,11 +40,9 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    // --- CHANGED SECTION START ---
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        // Optional: White border to make it pop against the background
                         border: Border.all(color: Colors.white, width: 2),
                         boxShadow: [
                           BoxShadow(
@@ -55,33 +53,32 @@ class DashboardScreen extends StatelessWidget {
                         ],
                       ),
                       child: const CircleAvatar(
-                        radius: 28, // Size of the avatar
+                        radius: 28,
                         backgroundImage: NetworkImage(
-                            'https://i.pravatar.cc/300?img=12'), // Placeholder Image
+                            'https://i.pravatar.cc/300?img=12'),
                       ),
                     )
-                    // --- CHANGED SECTION END ---
                   ],
                 ),
                 const SizedBox(height: 30),
 
-                // 3. HORIZONTAL PROJECT LIST
+                // 2. HORIZONTAL PROJECT LIST
                 SizedBox(
                   height: 240,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    clipBehavior: Clip.none, // Allows shadow to show
+                    clipBehavior: Clip.none,
                     children: [
                       _buildProjectCard(
                         title: "Testing Hard",
                         subtitle: "3 Tasks",
-                        color: const Color(0xFF756EF3), // The purple color
+                        color: const Color(0xFF756EF3),
                         percent: 0.85,
                       ),
                       _buildProjectCard(
                         title: "Management",
                         subtitle: "9 Tasks",
-                        color: const Color(0xFFFF8484), // The pink/red color
+                        color: const Color(0xFFFF8484),
                         percent: 0.40,
                       ),
                     ],
@@ -90,7 +87,7 @@ class DashboardScreen extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                // 4. TASKS HEADER
+                // 3. TASKS HEADER
                 Text(
                   "Tasks",
                   style: GoogleFonts.poppins(
@@ -100,19 +97,15 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // 5. VERTICAL TASK LIST
-                _buildTaskRow("Mobile App Design", "Mike and Anita", 0.75,
-                    Colors.purple),
-                _buildTaskRow("Landing Page", "Anita", 0.50, Colors.orange),
-                _buildTaskRow(
-                    "Dashboard Interaction", "Mike", 0.25, Colors.blue),
+                // 4. VERTICAL TASK LIST (Updated calls)
+                _buildTaskRow("Mobile App Design", "Mike and Anita"),
+                _buildTaskRow("Landing Page", "Anita"),
+                _buildTaskRow("Dashboard Interaction", "Mike"),
               ],
             ),
           ),
         ),
       ),
-
-      // OPTIONAL: Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: false,
         showUnselectedLabels: false,
@@ -130,7 +123,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // WIDGET: The Colorful Project Card
+  // WIDGET: Project Card
   Widget _buildProjectCard(
       {required String title,
       required String subtitle,
@@ -160,7 +153,7 @@ class DashboardScreen extends StatelessWidget {
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.access_time_filled, color: Colors.white),
+            child: const Icon(Icons.search, color: Colors.white),
           ),
           const Spacer(),
           Text(
@@ -190,8 +183,9 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // WIDGET: The White Task Row
-  Widget _buildTaskRow(String title, String team, double percent, Color color) {
+  // --- UPDATED WIDGET START ---
+  // WIDGET: Task Row with Checkbox
+  Widget _buildTaskRow(String title, String team) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
@@ -208,18 +202,20 @@ class DashboardScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircularPercentIndicator(
-            radius: 25.0,
-            lineWidth: 5.0,
-            percent: percent,
-            center: Text("${(percent * 100).toInt()}%",
-                style:
-                    const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-            progressColor: color,
-            backgroundColor: color.withOpacity(0.1),
-            circularStrokeCap: CircularStrokeCap.round,
+          // 1. The Custom Checkbox (Green Circle)
+          Container(
+            height: 28,
+            width: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: Colors.green, width: 2), // Green border like screenshot
+            ),
+            // You can add an Icon(Icons.check) here if you want it checked
           ),
           const SizedBox(width: 20),
+          
+          // 2. Text Content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,9 +233,12 @@ class DashboardScreen extends StatelessWidget {
               ],
             ),
           ),
+          
+          // 3. More Icon
           const Icon(Icons.more_vert, color: Colors.grey),
         ],
       ),
     );
   }
+  // --- UPDATED WIDGET END ---
 }
