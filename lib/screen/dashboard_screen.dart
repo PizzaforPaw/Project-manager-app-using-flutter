@@ -16,7 +16,7 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. TOP BAR (Hello User)
+                // 1. TOP BAR (Hello User + Avatar)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -40,48 +40,29 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ],
                     ),
+                    // --- CHANGED SECTION START ---
                     Container(
-                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
                         shape: BoxShape.circle,
+                        // Optional: White border to make it pop against the background
+                        border: Border.all(color: Colors.white, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withOpacity(0.1),
                             blurRadius: 10,
+                            offset: const Offset(0, 5),
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.notifications_none, size: 28),
+                      child: const CircleAvatar(
+                        radius: 28, // Size of the avatar
+                        backgroundImage: NetworkImage(
+                            'https://i.pravatar.cc/300?img=12'), // Placeholder Image
+                      ),
                     )
+                    // --- CHANGED SECTION END ---
                   ],
                 ),
-                
-                const SizedBox(height: 30),
-
-                // 2. SEARCH BAR
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const TextField(
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: "Search",
-                      icon: Icon(Icons.search, color: Colors.grey),
-                    ),
-                  ),
-                ),
-
                 const SizedBox(height: 30),
 
                 // 3. HORIZONTAL PROJECT LIST
@@ -120,15 +101,17 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // 5. VERTICAL TASK LIST
-                _buildTaskRow("Mobile App Design", "Mike and Anita", 0.75, Colors.purple),
+                _buildTaskRow("Mobile App Design", "Mike and Anita", 0.75,
+                    Colors.purple),
                 _buildTaskRow("Landing Page", "Anita", 0.50, Colors.orange),
-                _buildTaskRow("Dashboard Interaction", "Mike", 0.25, Colors.blue),
+                _buildTaskRow(
+                    "Dashboard Interaction", "Mike", 0.25, Colors.blue),
               ],
             ),
           ),
         ),
       ),
-      
+
       // OPTIONAL: Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: false,
@@ -136,9 +119,11 @@ class DashboardScreen extends StatelessWidget {
         selectedItemColor: const Color(0xFF756EF3),
         unselectedItemColor: Colors.grey.withOpacity(0.5),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled, size: 30), label: ""),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home_filled, size: 30), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: ""),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble_outline), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: ""),
         ],
       ),
@@ -146,7 +131,11 @@ class DashboardScreen extends StatelessWidget {
   }
 
   // WIDGET: The Colorful Project Card
-  Widget _buildProjectCard({required String title, required String subtitle, required Color color, required double percent}) {
+  Widget _buildProjectCard(
+      {required String title,
+      required String subtitle,
+      required Color color,
+      required double percent}) {
     return Container(
       width: 180,
       margin: const EdgeInsets.only(right: 20),
@@ -223,7 +212,9 @@ class DashboardScreen extends StatelessWidget {
             radius: 25.0,
             lineWidth: 5.0,
             percent: percent,
-            center: Text("${(percent * 100).toInt()}%", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+            center: Text("${(percent * 100).toInt()}%",
+                style:
+                    const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
             progressColor: color,
             backgroundColor: color.withOpacity(0.1),
             circularStrokeCap: CircularStrokeCap.round,
@@ -235,7 +226,8 @@ class DashboardScreen extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 5),
                 Text(
