@@ -11,7 +11,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   // ===========================================================================
-  // 1. DATA SOURCE: TASKS (Dynamic - These change often)
+  // 1. DATA SOURCE: TASKS
   // ===========================================================================
   final List<Map<String, dynamic>> tasks = [
     {
@@ -38,10 +38,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       "images": ['https://i.pravatar.cc/150?img=9'],
       "isChecked": false,
     },
+    {
+      "title": "API Integration",
+      "team": "Dev Team",
+      "images": ['https://i.pravatar.cc/150?img=11', 'https://i.pravatar.cc/150?img=12'],
+      "isChecked": false,
+    },
   ];
 
   // ===========================================================================
-  // 2. DATA SOURCE: PROJECTS (Now this is Dynamic too!)
+  // 2. DATA SOURCE: PROJECTS
   // ===========================================================================
   final List<Map<String, dynamic>> projects = [
     {
@@ -59,7 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
      {
       "title": "Web Dev",
       "subtitle": "12 Tasks",
-      "color": const Color(0xFF4AC1A0), // Green (Added this easily!)
+      "color": const Color(0xFF4AC1A0), // Green
       "percent": 0.20,
     },
   ];
@@ -73,40 +79,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9FB),
       body: SafeArea(
-        child: Column(
+        // CHANGE: We use one single ListView for the WHOLE screen.
+        // This removes the "fixed header" logic. Everything scrolls together.
+        child: ListView(
+          padding: const EdgeInsets.all(24),
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProfileHeader(),
-                  const SizedBox(height: 30),
+            // 1. Header Section
+            _buildProfileHeader(),
+            const SizedBox(height: 30),
 
-                  _buildSectionTitle(title: "Projects", actionText: "See all"),
-                  const SizedBox(height: 10),
+            // 2. Projects Section
+            _buildSectionTitle(title: "Projects", actionText: "See all"),
+            const SizedBox(height: 10),
+            _buildHorizontalProjectList(), 
+            
+            const SizedBox(height: 30),
 
-                  // NOW THIS IS CLEANER 👇
-                  _buildHorizontalProjectList(), 
-                  
-                  const SizedBox(height: 30),
+            // 3. Tasks Section
+            _buildSectionTitle(title: "Tasks", isActionBtn: true),
+            const SizedBox(height: 20),
 
-                  _buildSectionTitle(title: "Tasks", isActionBtn: true),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-                clipBehavior: Clip.hardEdge, 
-                itemCount: tasks.length,
-                itemBuilder: (context, index) {
-                  return _buildTaskCard(tasks[index], index);
-                },
-              ),
-            ),
+            // 4. Task List Items
+            // We use the spread operator (...) to put the list items directly here
+            ...tasks.asMap().entries.map((entry) {
+              return _buildTaskCard(entry.value, entry.key);
+            }),
+            
+            // Extra padding at the bottom so the last item isn't hidden
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -181,17 +181,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // --- UPDATED PROJECT LIST BUILDER ---
   Widget _buildHorizontalProjectList() {
     return SizedBox(
       height: 240,
-      // Now we use ListView.builder just like the tasks!
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        itemCount: projects.length, // Counts the data
+        itemCount: projects.length, 
         itemBuilder: (context, index) {
-          final project = projects[index]; // Gets the specific data
+          final project = projects[index]; 
           return _buildProjectCardItem(
             title: project['title'],
             subtitle: project['subtitle'],
