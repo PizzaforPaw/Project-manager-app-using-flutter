@@ -1,6 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// ===========================================================================
+// 1. THE TASK MODEL (Type Safety)
+// ===========================================================================
+class Task {
+  final String id;
+  final String tag;
+  final Color tagColor;
+  final String title;
+  final String description;
+  final int progressCurrent;
+  final int progressTotal;
+  final String priority; // 'Low', 'Medium', 'High'
+  final List<String> avatars;
+
+  Task({
+    required this.id,
+    required this.tag,
+    required this.tagColor,
+    required this.title,
+    required this.description,
+    required this.progressCurrent,
+    required this.progressTotal,
+    required this.priority,
+    required this.avatars,
+  });
+}
+
 class AllProjectsScreen extends StatefulWidget {
   const AllProjectsScreen({super.key});
 
@@ -10,76 +37,61 @@ class AllProjectsScreen extends StatefulWidget {
 
 class _AllProjectsScreenState extends State<AllProjectsScreen> {
   // ===========================================================================
-  // 1. DATA SOURCES
+  // 2. DATA SOURCES
   // ===========================================================================
   
-  // List for "In Work" Column
-  List<Map<String, dynamic>> inWorkProjects = [
-    {
-      "id": "1",
-      "tag": "New Project",
-      "tagColor": Colors.amber,
-      "title": "Mobile App Design",
-      "description": "Redesigning the main dashboard",
-      "progressCurrent": 4,
-      "progressTotal": 10,
-      "priority": "High",
-      "avatars": ['https://i.pravatar.cc/150?img=11', 'https://i.pravatar.cc/150?img=3'],
-    },
-    {
-      "id": "2",
-      "tag": "Dev",
-      "tagColor": Colors.blueAccent,
-      "title": "API Integration",
-      "description": "Connecting to the backend",
-      "progressCurrent": 2,
-      "progressTotal": 10,
-      "priority": "Medium",
-      "avatars": ['https://i.pravatar.cc/150?img=3'],
-    },
-    {
-      "id": "4",
-      "tag": "Testing",
-      "tagColor": Colors.redAccent,
-      "title": "Unit Tests",
-      "description": "Writing tests for auth module",
-      "progressCurrent": 0,
-      "progressTotal": 5,
-      "priority": "High",
-      "avatars": ['https://i.pravatar.cc/150?img=8'],
-    },
+  // Column 1: In Work
+  List<Task> inWorkProjects = [
+    Task(
+      id: "1",
+      tag: "New Project",
+      tagColor: Colors.amber,
+      title: "Mobile App Design",
+      description: "Redesigning the main dashboard",
+      progressCurrent: 4,
+      progressTotal: 10,
+      priority: "High",
+      avatars: ['https://i.pravatar.cc/150?img=11', 'https://i.pravatar.cc/150?img=3'],
+    ),
+    Task(
+      id: "2",
+      tag: "Dev",
+      tagColor: Colors.blueAccent,
+      title: "API Integration",
+      description: "Connecting to the backend",
+      progressCurrent: 2,
+      progressTotal: 10,
+      priority: "Medium",
+      avatars: ['https://i.pravatar.cc/150?img=3'],
+    ),
   ];
 
-  // List for "Completed" Column
-  List<Map<String, dynamic>> completedProjects = [
-    {
-      "id": "3",
-      "tag": "Design",
-      "tagColor": Colors.purple,
-      "title": "User Persona",
-      "description": "Creating user profiles",
-      "progressCurrent": 10,
-      "progressTotal": 10,
-      "priority": "Low",
-      "avatars": ['https://i.pravatar.cc/150?img=5', 'https://i.pravatar.cc/150?img=9'],
-    },
+  // Column 2: Completed
+  List<Task> completedProjects = [
+    Task(
+      id: "3",
+      tag: "Design",
+      tagColor: Colors.purple,
+      title: "User Persona",
+      description: "Creating user profiles",
+      progressCurrent: 10,
+      progressTotal: 10,
+      priority: "Low",
+      avatars: ['https://i.pravatar.cc/150?img=5'],
+    ),
   ];
 
   // ===========================================================================
-  // 2. DRAG AND DROP LOGIC
+  // 3. DRAG AND DROP LOGIC
   // ===========================================================================
   
-  void _onDrop(Map<String, dynamic> task, String targetStatus) {
+  void _onDrop(Task task, String targetStatus) {
     setState(() {
-      // 1. Identify where the task currently is and remove it
-      // We check both lists because we don't know where it came from initially
-      bool wasInWork = inWorkProjects.any((t) => t['id'] == task['id']);
-      bool wasCompleted = completedProjects.any((t) => t['id'] == task['id']);
+      // 1. Remove from wherever it was
+      inWorkProjects.removeWhere((t) => t.id == task.id);
+      completedProjects.removeWhere((t) => t.id == task.id);
 
-      if (wasInWork) inWorkProjects.removeWhere((t) => t['id'] == task['id']);
-      if (wasCompleted) completedProjects.removeWhere((t) => t['id'] == task['id']);
-
-      // 2. Add it to the correct TARGET list
+      // 2. Add to new destination
       if (targetStatus == "IN WORK") {
         inWorkProjects.insert(0, task);
       } else if (targetStatus == "COMPLETED") {
@@ -87,6 +99,93 @@ class _AllProjectsScreenState extends State<AllProjectsScreen> {
       }
     });
   }
+
+  // ===========================================================================
+  // 4. ADD TASK LOGIC (POPUP DIALOG)
+  // ===========================================================================
+  void _showAddTaskDialog(BuildContext context, String status) {
+    final TextEditingController titleController = TextEditingController();
+    final TextEditingController tagController = TextEditingController();
+    String selectedPriority = 'Low';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text("Add to $status", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: InputDecoration(
+                labelText: "Task Title",
+                prefixIcon: const Icon(Icons.title),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: tagController,
+              decoration: InputDecoration(
+                labelText: "Tag (e.g. Design)",
+                prefixIcon: const Icon(Icons.label),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: selectedPriority,
+              items: ['Low', 'Medium', 'High'].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+              onChanged: (val) => selectedPriority = val!,
+              decoration: InputDecoration(
+                labelText: "Priority",
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text("Cancel", style: TextStyle(color: Colors.grey[600])),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4AC1A0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              if (titleController.text.isNotEmpty) {
+                setState(() {
+                  final newTask = Task(
+                    id: DateTime.now().toString(),
+                    tag: tagController.text.isEmpty ? "General" : tagController.text,
+                    tagColor: Colors.blue, // Default color
+                    title: titleController.text,
+                    description: "No description added",
+                    progressCurrent: 0,
+                    progressTotal: 5,
+                    priority: selectedPriority,
+                    avatars: ['https://i.pravatar.cc/150?img=${DateTime.now().second % 10}'],
+                  );
+
+                  if (status == "IN WORK") inWorkProjects.add(newTask);
+                  else completedProjects.add(newTask);
+                });
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text("Create Task", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 5. MAIN UI BUILD
+  // ===========================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -99,13 +198,13 @@ class _AllProjectsScreenState extends State<AllProjectsScreen> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Kanban Board", style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text("Kanban Board", style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20)),
       ),
       body: SafeArea(
-        // HORIZONTAL SCROLLING AREA
         child: ListView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
+          physics: const BouncingScrollPhysics(),
           children: [
             _buildKanbanColumn(title: "IN WORK", tasks: inWorkProjects, status: "IN WORK"),
             const SizedBox(width: 16),
@@ -117,60 +216,69 @@ class _AllProjectsScreenState extends State<AllProjectsScreen> {
   }
 
   // ===========================================================================
-  // 3. UI BUILDERS
+  // 6. COLUMN & CARD BUILDERS
   // ===========================================================================
 
-  Widget _buildKanbanColumn({required String title, required List<Map<String, dynamic>> tasks, required String status}) {
-    // UPDATED: Made width smaller (0.65) so you can see the next column for easy dropping
-    double columnWidth = MediaQuery.of(context).size.width * 0.65; 
+  Widget _buildKanbanColumn({required String title, required List<Task> tasks, required String status}) {
+    // Width logic: On tablet take 350px, on mobile take 75% of screen
+    double width = MediaQuery.of(context).size.width > 600 ? 350 : MediaQuery.of(context).size.width * 0.75;
 
-    return DragTarget<Map<String, dynamic>>(
-      onWillAccept: (data) => true, // Accept any map data
-      onAccept: (data) {
-        _onDrop(data, status);
-      },
+    return DragTarget<Task>(
+      onWillAccept: (data) => true,
+      onAccept: (data) => _onDrop(data, status),
       builder: (context, candidateData, rejectedData) {
-        // Visual feedback if a card is hovering over this column
         bool isHovering = candidateData.isNotEmpty;
 
-        return Container(
-          width: columnWidth,
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: width,
+          margin: const EdgeInsets.only(top: 10, bottom: 20),
           decoration: BoxDecoration(
             color: isHovering ? Colors.blue.withOpacity(0.05) : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
-            border: isHovering 
-                ? Border.all(color: Colors.blue, width: 2) 
-                : Border.all(color: Colors.transparent),
+            border: isHovering ? Border.all(color: Colors.blue.withOpacity(0.5)) : Border.all(color: Colors.transparent),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // HEADER
+              // --- HEADER WITH ADD BUTTON ---
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey[700])),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
-                      child: Text("${tasks.length}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Row(
+                      children: [
+                        Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey[700])),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
+                          child: Text("${tasks.length}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      color: Colors.grey[600],
+                      tooltip: "Add Task",
+                      onPressed: () => _showAddTaskDialog(context, status),
                     ),
                   ],
                 ),
               ),
-              
-              // TASK LIST
+
+              // --- LIST AREA ---
               Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: tasks.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    return _buildDraggableCard(tasks[index]);
-                  },
-                ),
+                child: tasks.isEmpty 
+                  ? _buildEmptyState()
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: tasks.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        return _buildDraggableCard(tasks[index]);
+                      },
+                    ),
               ),
             ],
           ),
@@ -179,37 +287,47 @@ class _AllProjectsScreenState extends State<AllProjectsScreen> {
     );
   }
 
-  Widget _buildDraggableCard(Map<String, dynamic> task) {
-    // LongPressDraggable is better for lists so it doesn't conflict with scrolling
-    return LongPressDraggable<Map<String, dynamic>>(
+  Widget _buildEmptyState() {
+    return Center(
+      child: DottedBorderBox(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.download_rounded, color: Colors.grey[300], size: 40),
+            const SizedBox(height: 5),
+            Text("Drop here", style: TextStyle(color: Colors.grey[300])),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDraggableCard(Task task) {
+    return LongPressDraggable<Task>(
       data: task,
       dragAnchorStrategy: pointerDragAnchorStrategy,
-      
-      // What you see under your finger
-      feedback: Material(
-        color: Colors.transparent,
-        child: SizedBox(
-          // Make the dragging card slightly smaller than the column width
-          width: MediaQuery.of(context).size.width * 0.6, 
-          child: Opacity(
-            opacity: 0.9,
-            child: _buildCardContent(task, isDragging: true),
+      feedback: Transform.rotate(
+        angle: 0.05,
+        child: Material(
+          color: Colors.transparent,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.7,
+            child: Opacity(opacity: 0.9, child: _buildCardContent(task, isDragging: true)),
           ),
         ),
       ),
-      
-      // What stays behind (Ghost)
       childWhenDragging: Opacity(
         opacity: 0.3,
-        child: _buildCardContent(task),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.saturation),
+          child: _buildCardContent(task),
+        ),
       ),
-      
-      // Normal Card
       child: _buildCardContent(task),
     );
   }
 
-  Widget _buildCardContent(Map<String, dynamic> task, {bool isDragging = false}) {
+  Widget _buildCardContent(Task task, {bool isDragging = false}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -217,47 +335,44 @@ class _AllProjectsScreenState extends State<AllProjectsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: isDragging 
           ? [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))]
-          : [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+          : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Tag
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: task['tagColor'].withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              task['tag'], 
-              style: TextStyle(color: task['tagColor'], fontSize: 10, fontWeight: FontWeight.bold)
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: task.tagColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  task.tag, 
+                  style: TextStyle(color: task.tagColor, fontSize: 10, fontWeight: FontWeight.bold)
+                ),
+              ),
+              const Icon(Icons.more_horiz, size: 20, color: Colors.grey),
+            ],
           ),
           const SizedBox(height: 10),
-          
-          // Title
-          Text(task['title'], style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(task.title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          
-          // Description
-          Text(task['description'], style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey)),
+          Text(task.description, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey), maxLines: 2, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 12),
-          
-          // Progress Bar
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: task['progressCurrent'] / task['progressTotal'],
+              value: task.progressCurrent / task.progressTotal,
               minHeight: 4,
               backgroundColor: Colors.grey[100],
               valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4AC1A0)),
             ),
           ),
           const SizedBox(height: 12),
-          
-          // Footer
           Row(
             children: [
               SizedBox(
@@ -265,21 +380,42 @@ class _AllProjectsScreenState extends State<AllProjectsScreen> {
                 height: 24,
                 child: Stack(
                   children: [
-                    if ((task['avatars'] as List).isNotEmpty)
-                       Positioned(left: 0, child: CircleAvatar(radius: 10, backgroundImage: NetworkImage(task['avatars'][0]))),
-                    if ((task['avatars'] as List).length > 1)
-                       Positioned(left: 15, child: CircleAvatar(radius: 10, backgroundImage: NetworkImage(task['avatars'][1]))),
+                    if (task.avatars.isNotEmpty)
+                       Positioned(left: 0, child: CircleAvatar(radius: 10, backgroundImage: NetworkImage(task.avatars[0]))),
+                    if (task.avatars.length > 1)
+                       Positioned(left: 15, child: CircleAvatar(radius: 10, backgroundImage: NetworkImage(task.avatars[1]))),
                   ],
                 ),
               ),
               const Spacer(),
-              Icon(Icons.flag, size: 14, color: Colors.grey[400]),
+              Icon(Icons.flag, size: 14, color: task.priority == "High" ? Colors.red : Colors.grey[400]),
               const SizedBox(width: 4),
-              Text(task['priority'], style: TextStyle(color: Colors.grey[500], fontSize: 10)),
+              Text(task.priority, style: TextStyle(color: Colors.grey[500], fontSize: 10)),
             ],
           )
         ],
       ),
+    );
+  }
+}
+
+// Simple Helper for Empty State Dotted Border
+class DottedBorderBox extends StatelessWidget {
+  final Widget child;
+  const DottedBorderBox({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 150,
+      width: double.infinity,
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!, width: 1, style: BorderStyle.solid), // Simplified for standard flutter
+      ),
+      child: child,
     );
   }
 }
